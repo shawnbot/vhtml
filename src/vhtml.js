@@ -13,7 +13,7 @@ let sanitized = {};
 
 /** Hyperscript reviver that constructs a sanitized HTML string. */
 export default function h(name, attrs) {
-	let stack=[], s = '';
+	let stack=[], s = [];
 	attrs = attrs || {};
 	for (let i=arguments.length; i-- > 2; ) {
 		stack.push(arguments[i]);
@@ -27,18 +27,18 @@ export default function h(name, attrs) {
 	}
 
 	if (name) {
-		s += '<' + name;
+		s.push('<', name);
 		if (attrs) for (let i in attrs) {
 			if (attrs[i]!==false && attrs[i]!=null && i !== setInnerHTMLAttr) {
-				s += ` ${DOMAttributeNames[i] ? DOMAttributeNames[i] : esc(i)}="${esc(attrs[i])}"`;
+				s.push(' ', DOMAttributeNames[i] ? DOMAttributeNames[i] : esc(i), '="', esc(attrs[i]), '"');
 			}
 		}
-		s += '>';
+		s.push('>');
 	}
 
 	if (emptyTags.indexOf(name) === -1) {
 		if (attrs[setInnerHTMLAttr]) {
-			s += attrs[setInnerHTMLAttr].__html;
+			s.push(attrs[setInnerHTMLAttr].__html);
 		}
 		else while (stack.length) {
 			let child = stack.pop();
@@ -47,14 +47,17 @@ export default function h(name, attrs) {
 					for (let i=child.length; i--; ) stack.push(child[i]);
 				}
 				else {
-					s += sanitized[child]===true ? child : esc(child);
+					s.push(sanitized[child] === true ? child : esc(child));
 				}
 			}
 		}
 
-		s += name ? `</${name}>` : '';
+		if (name) {
+			s.push(`</${name}>`);
+		}
 	}
 
+	s = s.join('');
 	sanitized[s] = true;
 	return s;
 }
